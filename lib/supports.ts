@@ -1,5 +1,5 @@
 import webRTCAdapter_import from "webrtc-adapter";
-import { RTCPeerConnection } from "react-native-webrtc";
+// import { RTCPeerConnection } from "react-native-webrtc";
 
 const webRTCAdapter: typeof webRTCAdapter_import =
 	//@ts-ignore

@@ -160,8 +160,6 @@
 		"semantic-release": "semantic-release"
 	},
 	"devDependencies": {
-		"react-native": ">=0.60.0",
-		"react-native-webrtc": "^111.0.3",
 		"@parcel/config-default": "^2.5.0",
 		"@parcel/packager-ts": "^2.5.0",
 		"@parcel/transformer-typescript-tsc": "^2.5.0",
@@ -192,7 +190,7 @@
 		"webrtc-adapter": "^7.7.1"
 	},
 	"peerDependencies": {
-		"react-native-webrtc": "^111.0.3",
-		"react-native": ">=0.60.0"
+		"react-native": ">=0.60.0",
+		"react-native-webrtc": "^111.0.3"
 	}
 }

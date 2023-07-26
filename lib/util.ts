@@ -2,8 +2,8 @@
 //@ts-ignore
 import BinaryPack from "peerjs-js-binarypack";
 import { Supports } from "./supports";
-import { RTCPeerConnection } from "react-native-webrtc";
-import RTCDataChannel from "react-native-webrtc/src/RTCDataChannel";
+// import { RTCPeerConnection } from "react-native-webrtc";
+// import RTCDataChannel from "react-native-webrtc/src/RTCDataChannel";
 
 export interface UtilSupportsObj {
 	browser: boolean;

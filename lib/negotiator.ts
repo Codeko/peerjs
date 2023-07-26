@@ -5,12 +5,12 @@ import { DataConnection } from "./dataconnection";
 import { ConnectionType, PeerErrorType, ServerMessageType } from "./enums";
 import { BaseConnection, BaseConnectionEvents } from "./baseconnection";
 import { ValidEventTypes } from "eventemitter3";
-import {
+/*import {
 	RTCPeerConnection,
 	RTCIceCandidate,
 	RTCSessionDescription,
 	MediaStream,
-} from "react-native-webrtc";
+} from "react-native-webrtc";*/
 
 /**
  * Manages all negotiations between Peers.
@@ -171,7 +171,7 @@ export class Negotiator<
 
 				if (connection.type === ConnectionType.Media) {
 					const mediaConnection = <MediaConnection>connection;
-
+					// @ts-ignore
 					this._addStreamToMediaConnection(stream, mediaConnection);
 				}
 			},

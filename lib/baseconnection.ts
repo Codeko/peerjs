@@ -2,7 +2,7 @@ import { EventEmitter, ValidEventTypes } from "eventemitter3";
 import { Peer } from "./peer";
 import { ServerMessage } from "./servermessage";
 import { ConnectionType } from "./enums";
-import { RTCPeerConnection } from "react-native-webrtc";
+// import { RTCPeerConnection } from "react-native-webrtc";
 
 export type BaseConnectionEvents = {
 	/**

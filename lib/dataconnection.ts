@@ -7,8 +7,8 @@ import { BaseConnection } from "./baseconnection";
 import { ServerMessage } from "./servermessage";
 import { EncodingQueue } from "./encodingQueue";
 import type { DataConnection as IDataConnection } from "./dataconnection";
-import RTCDataChannel from "react-native-webrtc/src/RTCDataChannel";
-import MessageEvent from "react-native-webrtc/src/MessageEvent";
+// import RTCDataChannel from "react-native-webrtc/src/RTCDataChannel";
+// import MessageEvent from "react-native-webrtc/src/MessageEvent";
 
 type DataConnectionEvents = {
 	/**
