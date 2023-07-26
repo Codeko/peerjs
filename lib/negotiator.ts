@@ -5,6 +5,12 @@ import { DataConnection } from "./dataconnection";
 import { ConnectionType, PeerErrorType, ServerMessageType } from "./enums";
 import { BaseConnection, BaseConnectionEvents } from "./baseconnection";
 import { ValidEventTypes } from "eventemitter3";
+import {
+	RTCPeerConnection,
+	RTCIceCandidate,
+	RTCSessionDescription,
+	MediaStream,
+} from "react-native-webrtc";
 
 /**
  * Manages all negotiations between Peers.
@@ -69,91 +75,108 @@ export class Negotiator<
 		// ICE CANDIDATES.
 		logger.log("Listening for ICE candidates.");
 
-		peerConnection.onicecandidate = (evt) => {
-			if (!evt.candidate || !evt.candidate.candidate) return;
+		peerConnection.addEventListener(
+			"icecandidate",
+			(evt) => {
+				// @ts-ignore
+				if (!evt.candidate || !evt.candidate.candidate) return;
+				// @ts-ignore
+				logger.log(`Received ICE candidates for ${peerId}:`, evt.candidate);
 
-			logger.log(`Received ICE candidates for ${peerId}:`, evt.candidate);
+				provider.socket.send({
+					type: ServerMessageType.Candidate,
+					payload: {
+						// @ts-ignore
+						candidate: evt.candidate,
+						type: connectionType,
+						connectionId: connectionId,
+					},
+					dst: peerId,
+				});
+			},
+			{ capture: false },
+		);
 
-			provider.socket.send({
-				type: ServerMessageType.Candidate,
-				payload: {
-					candidate: evt.candidate,
-					type: connectionType,
-					connectionId: connectionId,
-				},
-				dst: peerId,
-			});
-		};
+		peerConnection.addEventListener(
+			"iceconnectionstatechange",
+			(_event) => {
+				switch (peerConnection.iceConnectionState) {
+					case "failed":
+						logger.log(
+							"iceConnectionState is failed, closing connections to " + peerId,
+						);
+						this.connection.emit(
+							"error",
+							new Error("Negotiation of connection to " + peerId + " failed."),
+						);
+						this.connection.close();
+						break;
+					case "closed":
+						logger.log(
+							"iceConnectionState is closed, closing connections to " + peerId,
+						);
+						this.connection.emit(
+							"error",
+							new Error("Connection to " + peerId + " closed."),
+						);
+						this.connection.close();
+						break;
+					case "disconnected":
+						logger.log(
+							"iceConnectionState changed to disconnected on the connection with " +
+								peerId,
+						);
+						break;
+					case "completed":
+						peerConnection.onicecandidate = util.noop;
+						break;
+				}
 
-		peerConnection.oniceconnectionstatechange = () => {
-			switch (peerConnection.iceConnectionState) {
-				case "failed":
-					logger.log(
-						"iceConnectionState is failed, closing connections to " + peerId,
-					);
-					this.connection.emit(
-						"error",
-						new Error("Negotiation of connection to " + peerId + " failed."),
-					);
-					this.connection.close();
-					break;
-				case "closed":
-					logger.log(
-						"iceConnectionState is closed, closing connections to " + peerId,
-					);
-					this.connection.emit(
-						"error",
-						new Error("Connection to " + peerId + " closed."),
-					);
-					this.connection.close();
-					break;
-				case "disconnected":
-					logger.log(
-						"iceConnectionState changed to disconnected on the connection with " +
-							peerId,
-					);
-					break;
-				case "completed":
-					peerConnection.onicecandidate = util.noop;
-					break;
-			}
-
-			this.connection.emit(
-				"iceStateChanged",
-				peerConnection.iceConnectionState,
-			);
-		};
+				this.connection.emit(
+					"iceStateChanged",
+					peerConnection.iceConnectionState,
+				);
+			},
+			{ capture: false },
+		);
 
 		// DATACONNECTION.
 		logger.log("Listening for data channel");
 		// Fired between offer and answer, so options should already be saved
 		// in the options hash.
-		peerConnection.ondatachannel = (evt) => {
-			logger.log("Received data channel");
+		peerConnection.addEventListener(
+			"datachannel",
+			(evt) => {
+				logger.log("Received data channel");
+				// @ts-ignore
+				const dataChannel = evt.channel;
+				const connection = <DataConnection>(
+					provider.getConnection(peerId, connectionId)
+				);
 
-			const dataChannel = evt.channel;
-			const connection = <DataConnection>(
-				provider.getConnection(peerId, connectionId)
-			);
-
-			connection.initialize(dataChannel);
-		};
+				connection.initialize(dataChannel);
+			},
+			{ capture: false },
+		);
 
 		// MEDIACONNECTION.
 		logger.log("Listening for remote stream");
+		peerConnection.addEventListener(
+			"track",
+			(evt) => {
+				logger.log("Received remote stream");
+				// @ts-ignore
+				const stream = evt.track;
+				const connection = provider.getConnection(peerId, connectionId);
 
-		peerConnection.ontrack = (evt) => {
-			logger.log("Received remote stream");
+				if (connection.type === ConnectionType.Media) {
+					const mediaConnection = <MediaConnection>connection;
 
-			const stream = evt.streams[0];
-			const connection = provider.getConnection(peerId, connectionId);
-
-			if (connection.type === ConnectionType.Media) {
-				const mediaConnection = <MediaConnection>connection;
-
-				this._addStreamToMediaConnection(stream, mediaConnection);
-			}
-		};
+					this._addStreamToMediaConnection(stream, mediaConnection);
+				}
+			},
+			{ capture: false },
+		);
 	}
 
 	cleanup(): void {
@@ -168,6 +191,7 @@ export class Negotiator<
 		this.connection.peerConnection = null;
 
 		//unsubscribe from all PeerConnection's events
+
 		peerConnection.onicecandidate =
 			peerConnection.oniceconnectionstatechange =
 			peerConnection.ondatachannel =

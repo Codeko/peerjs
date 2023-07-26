@@ -7,6 +7,8 @@ import { BaseConnection } from "./baseconnection";
 import { ServerMessage } from "./servermessage";
 import { EncodingQueue } from "./encodingQueue";
 import type { DataConnection as IDataConnection } from "./dataconnection";
+import RTCDataChannel from "react-native-webrtc/src/RTCDataChannel";
+import MessageEvent from "react-native-webrtc/src/MessageEvent";
 
 type DataConnectionEvents = {
 	/**
@@ -104,21 +106,22 @@ export class DataConnection
 			this.dataChannel.binaryType = "arraybuffer";
 		}
 
-		this.dataChannel.onopen = () => {
+		this.dataChannel.addEventListener("open", () => {
 			logger.log(`DC#${this.connectionId} dc connection success`);
 			this._open = true;
 			this.emit("open");
-		};
+		});
 
-		this.dataChannel.onmessage = (e) => {
+		// @ts-ignore
+		this.dataChannel.addEventListener("message", (e: MessageEvent) => {
 			logger.log(`DC#${this.connectionId} dc onmessage:`, e.data);
 			this._handleDataMessage(e);
-		};
+		});
 
-		this.dataChannel.onclose = () => {
+		this.dataChannel.addEventListener("close", () => {
 			logger.log(`DC#${this.connectionId} dc closed for:`, this.peer);
 			this.close();
-		};
+		});
 	}
 
 	// Handles a DataChannel message.

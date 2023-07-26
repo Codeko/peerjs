@@ -1,4 +1,5 @@
 import webRTCAdapter_import from "webrtc-adapter";
+import { RTCPeerConnection } from "react-native-webrtc";
 
 const webRTCAdapter: typeof webRTCAdapter_import =
 	//@ts-ignore
@@ -56,8 +57,8 @@ export const Supports = new (class {
 		let supported = false;
 
 		try {
-			tempPc = new RTCPeerConnection();
-			tempPc.addTransceiver("audio");
+			tempPc = new RTCPeerConnection({});
+			tempPc.addTransceiver("audio", {});
 			supported = true;
 		} catch (e) {
 		} finally {
